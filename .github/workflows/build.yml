@@ -11,12 +11,16 @@ jobs:
         run: |
           unzip -o My_Mini_Farm_Mythical_Philippines_APK_Build.zip -d ./game
           ls -la ./game
+          ls -la ./game/my_mini_farm || true
+          ls -la ./game/My_Mini_Farm_Mythical_Philippines_APK_Build || true
 
-      - uses: actions/setup-node@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 20
 
-      - uses: actions/setup-java@v5
+      - name: Setup Java
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: 17
@@ -25,17 +29,22 @@ jobs:
         run: |
           npm install -g @capacitor/cli
           cd game
+          # pasok sa loob kung nasaan yung index.html
+          if [ -d "my_mini_farm" ]; then cd my_mini_farm; fi
+          if [ -d "My_Mini_Farm_Mythical_Philippines_APK_Build" ]; then cd My_Mini_Farm_Mythical_Philippines_APK_Build; fi
+          pwd
           ls -la
           npm init -y
           npm install @capacitor/core @capacitor/android
-          npx cap init "Mini Farm" com.bossing.minifarm --web-dir=. --npm-client=npm
+          npx cap init "Mini Farm" com.bossing.minifarm --web-dir=.
           npx cap add android
           npx cap copy
           cd android
           chmod +x gradlew
           ./gradlew assembleDebug
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
         with:
           name: Mini-Farm-APK
-          path: game/android/app/build/outputs/apk/debug/*.apk
+          path: "**/app/build/outputs/apk/debug/*.apk"
