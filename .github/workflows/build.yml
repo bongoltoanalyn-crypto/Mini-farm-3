@@ -1,0 +1,41 @@
+name: Build Mini Farm APK
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Unzip game
+        run: |
+          unzip -o My_Mini_Farm_Mythical_Philippines_APK_Build.zip -d ./game
+          ls -la ./game
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Build APK
+        run: |
+          npm install -g @capacitor/cli
+          cd game
+          ls -la
+          npm init -y
+          npm install @capacitor/core @capacitor/android
+          npx cap init "Mini Farm" com.bossing.minifarm --web-dir=. --npm-client=npm
+          npx cap add android
+          npx cap copy
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Mini-Farm-APK
+          path: game/android/app/build/outputs/apk/debug/*.apk
